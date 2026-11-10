@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Expedición Silvestre - Gran Chaco</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            background-color: #070b0e;
+            color: #e0e6ed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            background: #0d160e;
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.9);
+            border: 2px solid #233827;
+            border-radius: 8px;
+            overflow: hidden;
+            outline: none;
+            transform-origin: center center;
+        }
+
+        canvas {
+            display: block;
+            width: 760px;
+            height: 600px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .ui-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 15, 11, 0.96);
+            z-index: 10;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 34px;
+            color: #5cdb6d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(92, 219, 109, 0.4);
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: #90a993;
+            margin-bottom: 20px;
+            max-width: 650px;
+            line-height: 1.4;
+        }
+
+        .difficulty-container, .ability-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .diff-card, .ability-card {
+            background: #111b13;
+            border: 2px solid #2d4a32;
+            border-radius: 6px;
+            padding: 15px;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .diff-card:hover, .ability-card:hover {
+            border-color: #5cdb6d;
+            background: #192e1d;
+            transform: translateY(-3px);
+        }
+
+        .diff-card h3, .ability-card h3 {
+            color: #5cdb6d;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .ability-card .icon-head {
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
+
+        .diff-card p, .ability-card p {
+            font-size: 11px;
+            color: #90a993;
+            line-height: 1.3;
+        }
+
+        .btn {
+            background: #192e1d;
+            color: #5cdb6d;
+            border: 2px solid #5cdb6d;
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: #5cdb6d;
+            color: #0a0f0b;
+            box-shadow: 0 0 15px rgba(92, 219, 109, 0.6);
+        }
+
+        .dialog-box {
+            background: #142217;
+            border: 2px solid #2d4a32;
+            border-radius: 6px;
+            padding: 20px;
+            max-width: 720px;
+            width: 100%;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .story-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #d1e0d3;
+            margin-bottom: 10px;
+        }
+
+        .equipment-list {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .equip-card {
+            background: #0a0f0b;
+            border: 1px solid #5cdb6d;
+            padding: 8px;
+            border-radius: 6px;
+            width: 125px;
+            text-align: center;
+        }
+
+        .equip-card h3 {
+            color: #5cdb6d;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .equip-card p {
+            font-size: 9px;
+            color: #90a993;
+        }
+
+        #species-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .species-card {
+            background: #121f15;
+            border: 3px solid #5cdb6d;
+            border-radius: 8px;
+            width: 480px;
+            max-width: 100%;
+            padding: 20px;
+            box-shadow: 0 0 25px rgba(92, 219, 109, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .species-badge {
+            background: #5cdb6d;
+            color: #0a0f0b;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .species-title {
+            font-size: 22px;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .species-region {
+            font-size: 12px;
+            font-weight: bold;
+            color: #e0a96d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .species-img-box {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid #5cdb6d;
+            background: #0a110c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .species-info {
+            font-size: 12px;
+            color: #d1e0d3;
+            line-height: 1.4;
+            background: #0a0f0b;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #233827;
+            width: 100%;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        #victory-screen, #gameover-screen {
+            z-index: 30;
+            overflow-y: auto;
+        }
+
+        .summary-list-box {
+            width: 100%;
+            max-width: 850px;
+            max-height: 380px;
+            overflow-y: auto;
+            background: #080d09;
+            border: 2px solid #233827;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .summary-item {
+            background: #111a13;
+            border: 1px solid #1f3623;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .summary-item strong {
+            color: #5cdb6d;
+        }
+
+        #hud-sidebar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 240px;
+            height: 100%;
+            background: rgba(10, 16, 11, 0.95);
+            border-left: 2px solid #233827;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #thermal-alert-banner {
+            width: 100%;
+            background: #ff1100;
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            padding: 4px 2px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(255, 17, 0, 0.8);
+            animation: pulse-alert 1s infinite alternate;
+        }
+
+        @keyframes pulse-alert {
+            0% { opacity: 0.7; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .timer-box {
+            background: #040805;
+            border: 2px solid #ffaa00;
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            margin-bottom: 6px;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .timer-box.bonus-active {
+            border-color: #00ff66;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.6);
+        }
+
+        .timer-title {
+            font-size: 9px;
+            color: #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-digits {
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 8px #ffaa00;
+        }
+
+        .radar-box {
+            width: 100%;
+            height: 155px;
+            background: #050806;
+            border: 2px solid #233827;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .radar-title {
+            font-size: 10px;
+            color: #90a993;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        #radar-canvas {
+            width: 125px;
+            height: 125px;
+        }
+
+        .stats-box {
+            background: #050806;
+            border: 1px solid #233827;
+            padding: 5px 8px;
+            border-radius: 6px;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+
+        .stat-val {
+            color: #5cdb6d;
+            font-weight: bold;
+        }
+
+        .controls-hint {
+            font-size: 8px;
+            color: #637e67;
+            text-align: center;
+            line-height: 1.25;
+        }
+
+        /* CONTROLES TÁCTILES FLOTANTES PARA CELULAR */
+        #mobile-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 760px;
+            height: 100%;
+            pointer-events: none;
+            z-index: 6;
+            display: none;
+        }
+
+        .virtual-joystick-base {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            width: 110px;
+            height: 110px;
+            background: rgba(92, 219, 109, 0.12);
+            border: 2px solid rgba(92, 219, 109, 0.4);
+            border-radius: 50%;
+            pointer-events: auto;
+            touch-action: none;
+        }
+
+        .virtual-joystick-thumb {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(92, 219, 109, 0.65);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .touch-action-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 255px; /* Quedan justo a la izquierda de la barra lateral de stats */
+            display: grid;
+            grid-template-columns: repeat(3, 48px);
+            gap: 6px;
+            pointer-events: auto;
+        }
+
+        .t-btn {
+            background: rgba(17, 27, 19, 0.9);
+            border: 2px solid #5cdb6d;
+            color: #5cdb6d;
+            font-weight: bold;
+            font-size: 10px;
+            height: 44px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .t-btn.active {
+            background: #5cdb6d;
+            color: #070b0e;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container" tabindex="0">
+    <canvas id="gameCanvas" width="760" height="600"></canvas>
+
+    <!-- Controles táctiles para celulares -->
+    <div id="mobile-controls">
+        <div id="joystick-base" class="virtual-joystick-base">
+            <div id="joystick-thumb" class="virtual-joystick-thumb"></div>
+        </div>
+        <div class="touch-action-buttons">
+            <button class="t-btn" id="btn-action-reg" style="grid-column: span 3;">📷 REGISTRAR</button>
+            <button class="t-btn" id="btn-action-e">💧 AGUA</button>
+            <button class="t-btn" id="btn-action-f">🧲 IMÁN</button>
+            <button class="t-btn" id="btn-action-b">🦅 AVE</button>
+            <button class="t-btn" id="btn-action-t" style="grid-column: span 2;">🔥 CALOR</button>
+        </div>
+    </div>
+
+    <div id="hud-sidebar" class="hidden">
+        <div>
+            <div id="thermal-alert-banner" class="hidden">
+                🔥 ALERTA INCENDIO ACTIVO 🔥
+            </div>
+
+            <div class="timer-box" id="hud-timer-box">
+                <div class="timer-title">Tiempo Restante</div>
+                <div class="timer-digits" id="hud-timer">10:00</div>
+            </div>
+
+            <div class="radar-box">
+                <span class="radar-title" id="radar-mode-title">Radar General</span>
+                <canvas id="radar-canvas" width="125" height="125"></canvas>
+            </div>
+
+            <div class="stats-box" style="margin-top: 4px;">
+                <div class="stat-line">
+                    <span>Nivel:</span>
+                    <span class="stat-val" id="hud-diff-name" style="color:#e0a96d;">Fácil</span>
+                </div>
+                <div class="stat-line">
+                    <span>Habilidad:</span>
+                    <span class="stat-val" id="hud-ability-name" style="color:#38b6ff;">Yaguareté</span>
+                </div>
+                <div class="stat-line">
+                    <span>Imán [F]:</span>
+                    <span class="stat-val" id="hud-magnet-status" style="color:#ffaa00;">OFF</span>
+                </div>
+                <div class="stat-line">
+                    <span>Fauna Reg.:</span>
+                    <span class="stat-val" id="fauna-count">0 / 19</span>
+                </div>
+                <div class="stat-line">
+                    <span>Flora Reg.:</span>
+                    <span class="stat-val" id="flora-count">0 / 10</span>
+                </div>
+                <div class="stat-line" style="border-top: 1px solid #1a2c1d; padding-top: 2px; margin-top: 2px;">
+                    <span style="color:#ff3300;">Cazados:</span>
+                    <span class="stat-val" id="poached-count" style="color:#ff3300;">0</span>
+                </div>
+                <div class="stat-line">
+                    <span style="color:#ff4400;">Fauna Mig.:</span>
+                    <span class="stat-val" id="migrated-count" style="color:#ff4400;">0</span>
+                </div>
+                <div class="stat-line" style="border-top: 1px solid #1a2c1d; padding-top: 2px; margin-top: 2px;">
+                    <span>Binoculares [B]:</span>
+                    <span class="stat-val" id="bino-status">OFF</span>
+                </div>
+                <div class="stat-line">
+                    <span>Termografía [T]:</span>
+                    <span class="stat-val" id="thermal-status">OFF</span>
+                </div>
+                <div class="stat-line">
+                    <span>Extintor [E]:</span>
+                    <span class="stat-val" id="hose-status" style="color:#00e5ff;">OFF</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-hint">
+            <strong>CONTROLES:</strong><br>
+            [W,A,S,D] Moverse | [E] Agua (+15s)<br>
+            [F] Imán Fauna (Mitad Buff / Atracción)<br>
+            [B] Aves | [T] Calor | [Espacio] Registrar
+        </div>
+    </div>
+
+    <!-- 1. Menú Seleccionar Nivel -->
+    <div id="screen-main-menu" class="ui-screen">
+        <h1>Expedición Gran Chaco</h1>
+        <p class="subtitle">¡Los animales huyen del cazador y la flora resiste! Selecciona la dificultad:</p>
+        
+        <div class="difficulty-container">
+            <div class="diff-card" onclick="selectDifficulty(1)">
+                <h3>1. Bañado Manso</h3>
+                <p><strong>Fácil:</strong> Tiempo: 10 min.<br>Cazador pausado y reaparición lenta.</p>
+            </div>
+            <div class="diff-card" onclick="selectDifficulty(2)">
+                <h3>2. Monte Adentro</h3>
+                <p><strong>Medio:</strong> Tiempo: 5 min.<br>Cazador activo y fuegos rápidos.</p>
+            </div>
+            <div class="diff-card" onclick="selectDifficulty(3)">
+                <h3>3. El Impenetrable</h3>
+                <p><strong>Difícil:</strong> Tiempo: 3 min.<br>¡Cazador implacable y emboscadas constantes!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Menú Selección de Habilidad de Animal -->
+    <div id="screen-ability-select" class="ui-screen hidden">
+        <h1>Bendición de la Fauna</h1>
+        <p class="subtitle">Equipa a tu personaje con la habilidad especial de una especie autóctona para hacerle frente al cazador:</p>
+
+        <div class="ability-container">
+            <div class="ability-card" onclick="confirmAbility('yaguarete')">
+                <div class="icon-head">🐆</div>
+                <h3>Zarpazo del Yaguareté</h3>
+                <p><strong>Buff Velocidad:</strong> +35% de velocidad permanente (puedes activar [F] para reducirlo a la mitad y atraer especies).</p>
+            </div>
+            <div class="ability-card" onclick="confirmAbility('aguila')">
+                <div class="icon-head">🦅</div>
+                <h3>Vista de Águila</h3>
+                <p><strong>Buff Visión:</strong> Duplica permanentemente tu radio de visión (puedes activar [F] para reducirlo y atraer especies).</p>
+            </div>
+            <div class="ability-card" onclick="confirmAbility('carpincho')">
+                <div class="icon-head">🦫</div>
+                <h3>Poder del Carpincho</h3>
+                <p><strong>Buff Extintor:</strong> Duplica el alcance de tu manguera y +20s por foco (puedes activar [F] para atraer especies).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Pantalla de Historia -->
+    <div id="screen-story" class="ui-screen hidden">
+        <div class="dialog-box">
+            <div class="story-text" id="story-content">...</div>
+            
+            <div id="equipment-display" class="equipment-list">
+                <div class="equip-card">
+                    <h3>Extintor [E]</h3>
+                    <p>Apaga fuegos (+15s) y ahuyenta furtivos (+30s).</p>
+                </div>
+                <div class="equip-card">
+                    <h3>Imán Fauna [F]</h3>
+                    <p>Reduce tu buff a la mitad para que los animales migrados reaparezcan cerca tuyo.</p>
+                </div>
+                <div class="equip-card">
+                    <h3>Huella Calor [T]</h3>
+                    <p>Detecta focos y al cazador activo.</p>
+                </div>
+            </div>
+
+            <button class="btn" id="btn-next" style="margin-top: 12px;">ENTRAR AL MONTE</button>
+        </div>
+    </div>
+
+    <!-- Modal Ficha Especie -->
+    <div id="species-modal" class="hidden">
+        <div class="species-card">
+            <span class="species-badge" id="modal-type">FAUNA CHAQUEÑA</span>
+            <h2 class="species-title" id="modal-name">Yaguareté</h2>
+            <p class="species-region" id="modal-region">Chaco Húmedo y Seco</p>
+            <div class="species-img-box" id="modal-icon">🐆</div>
+            <div class="species-info">
+                <strong>Rol / Estado:</strong> <span id="modal-status" style="color: #5cdb6d;">En peligro</span><br>
+                <strong>Hábitat:</strong> <span id="modal-habitat">Bosques y áreas cercanas a ríos y esteros</span><br><br>
+                <p id="modal-desc">Depredador tope del ecosistema.</p>
+            </div>
+            <button class="btn" id="btn-close-modal">GUARDAR FICHA</button>
+        </div>
+    </div>
+
+    <!-- Pantalla Victoria -->
+    <div id="victory-screen" class="ui-screen hidden">
+        <h1 style="color:#5cdb6d; margin-bottom: 5px;">¡MISIÓN CUMPLIDA!</h1>
+        <p class="subtitle" style="margin-bottom: 10px;">Catálogo Oficial Registrado con Éxito:</p>
+        
+        <div class="summary-list-box">
+            <div class="summary-grid" id="summary-grid-container"></div>
+        </div>
+
+        <button class="btn" onclick="location.reload()">CAMBIAR DE NIVEL</button>
+    </div>
+
+    <!-- Pantalla Game Over -->
+    <div id="gameover-screen" class="ui-screen hidden">
+        <h1 style="color:#ff3300; margin-bottom: 5px;" id="gameover-title">¡EXPEDICIÓN FALLIDA!</h1>
+        <p class="subtitle" id="gameover-reason" style="margin-bottom: 20px;">El tiempo se ha agotado o demasiadas especies han sido cazadas.</p>
+        <button class="btn" onclick="location.reload()">REINTENTAR NIVEL</button>
+    </div>
+</div>
+
+<script>
+    const STATE = { MAIN_MENU: 0, ABILITY_SELECT: 1, STORY: 2, EXPLORATION: 3, MODAL: 4, VICTORY: 5, GAMEOVER: 6 };
+    let currentState = STATE.MAIN_MENU;
+
+    const gameContainer = document.getElementById('game-container');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const radarCanvas = document.getElementById('radar-canvas');
+    const radarCtx = radarCanvas.getContext('2d');
+
+    // Auto-escalado adaptable responsivo para PC y Celulares
+    function fitGameToScreen() {
+        const ww = window.innerWidth;
+        const wh = window.innerHeight;
+        const scale = Math.min(ww / 1000, wh / 600);
+        gameContainer.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', fitGameToScreen);
+    window.addEventListener('load', fitGameToScreen);
+    fitGameToScreen();
+
+    let currentDifficulty = 1;
+    let selectedAbility = 'yaguarete'; 
+    let magnetActive = false;
+    let worldSize = 4800;
+    let dashOffset = 0;
+
+    let timeRemaining = 600;
+    let timerInterval = null;
+    let floatingTexts = [];
+
+    let poacher = { 
+        x: 2400, y: 2400, speed: 2.0, active: true, respawnTimer: 0, targetX: 2400, targetY: 2400, timer: 0 
+    };
+    let poachedCount = 0;
+
+    let isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    let joystickData = { active: false, x: 0, y: 0 };
+
+    const keys = {};
+    window.addEventListener('keydown', e => {
+        keys[e.code] = true;
+        if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyE", "KeyF"].includes(e.code)) {
+            e.preventDefault();
+        }
+    });
+    window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+    let trees = [];
+    let rivers = [];
+    let fireFoci = [];
+    let particles = [];
+    let waterParticles = [];
+    let tallGrass = [];
+    let faunaList = [];
+    let floraList = [];
+
+    const rawFauna = [
+        { name: "Yaguareté", region: "Chaco Húmedo y Seco", category: "Terrestre", icon: "🐆", status: "En peligro", habitat: "Bosques y áreas cercanas a ríos y esteros", desc: "Depredador tope del ecosistema." },
+        { name: "Carpincho", region: "Chaco Húmedo", category: "Terrestre", icon: "🦫", status: "Autóctono", habitat: "Bañados, lagunas y riberas", desc: "El roedor más grande de América del Sur." },
+        { name: "Aguará guazú", region: "Chaco Húmedo", category: "Terrestre", icon: "🦊", status: "Protegido", habitat: "Pastizales y bañados", desc: "Zorro de gran tamaño, símbolo del Chaco." },
+        { name: "Tapir", region: "Chaco Húmedo y Seco", category: "Terrestre", icon: "🦣", status: "Nativo", habitat: "Bosques, bañados y monte", desc: "Dispersor clave de semillas en bosques y bañados." },
+        { name: "Ñandú", region: "Chaco Húmedo", category: "Ave", icon: "🦤", status: "Adaptado", habitat: "Llanuras y pastizales húmedos", desc: "Ave corredora adaptada a llanuras." },
+        { name: "Carancho", region: "Chaco Húmedo", category: "Ave", icon: "🦅", status: "Depredador/Carroñero", habitat: "Monte y bañados", desc: "Ave rapaz comedora de carroña e insectos." },
+        { name: "Yacaré overo", region: "Chaco Húmedo", category: "Acuático", icon: "🐊", status: "Regulador acuático", habitat: "Ríos, lagunas y esteros", desc: "Regulador del ecosistema acuático." },
+        { name: "Boa curiyú", region: "Chaco Húmedo y Seco", category: "Reptil", icon: "🐍", status: "Autóctono", habitat: "Bosques, esteros y zonas inundables", desc: "Serpiente acuática y terrestre de gran tamaño." },
+        { name: "Oso hormiguero", region: "Chaco Húmedo y Seco", category: "Terrestre", icon: "🦥", status: "Clave ecológico", habitat: "Monte y bosques", desc: "Controlador natural de hormigas y termitas." },
+        { name: "Pecarí chaqueño", region: "Chaco Húmedo y Seco", category: "Terrestre", icon: "🐗", status: "Autóctono", habitat: "Bosques y monte", desc: "Se alimenta de raíces, semillas y frutos en grupo." },
+        { name: "Anaconda amarilla", region: "Chaco Húmedo", category: "Acuático", icon: "🐍", status: "Depredador", habitat: "Ríos y bañados", desc: "Una de las serpientes continentales más grandes." },
+        { name: "Jacana común", region: "Chaco Húmedo", category: "Ave", icon: "🐦", status: "Nativo acuático", habitat: "Ríos y bañados", desc: "Camina sobre plantas flotantes buscando invertebrados." },
+        { name: "Ciervo de los pantanos", region: "Chaco Seco / Riberas", category: "Terrestre", icon: "🦌", status: "Autóctono", habitat: "Áreas húmedas y bosques de ribera", desc: "Cérvido de zonas húmedas y riberas." },
+        { name: "Mulita", region: "Chaco Seco", category: "Terrestre", icon: "🦔", status: "Muy común", habitat: "Monte seco", desc: "Mamífero insectívoro de coraza del monte." },
+        { name: "Seriema", region: "Chaco Seco", category: "Ave", icon: "🦤", status: "Emblemática", habitat: "Monte árido y pastizales", desc: "Ave corredora emblemática de canto estridente." },
+        { name: "Loro de frente roja", region: "Chaco Seco", category: "Ave", icon: "🦜", status: "Autóctono", habitat: "Bosques secos", desc: "Habitante de bosques secos alimentado de semillas." },
+        { name: "Lagartija chaqueña", region: "Chaco Seco", category: "Reptil", icon: "🦎", status: "Resistente", habitat: "Suelos áridos y monte", desc: "Adaptada a condiciones de calor extremo." },
+        { name: "Calandria chaqueña", region: "Chaco Seco", category: "Ave", icon: "🐦", status: "Común", habitat: "Monte seco", desc: "Ave insectívora del monte." },
+        { name: "Águila coronada", region: "Chaco Seco", category: "Ave", icon: "🦅", status: "Depredador tope", habitat: "Bosques secos abiertos", desc: "Depredador aéreo tope del Chaco Seco." }
+    ];
+
+    const rawFlora = [
+        { name: "Lapacho", region: "Chaco Húmedo", icon: "🌸", status: "Emblemático", habitat: "Bosques húmedos", desc: "Árbol de flores vistosas que atrae polinizadores." },
+        { name: "Algarrobo blanco", region: "Chaco Húmedo y Seco", icon: "🌳", status: "Resistente", habitat: "Bosque ecorregional", desc: "Resistente a sequías e inundaciones." },
+        { name: "Ceibo", region: "Chaco Húmedo", icon: "🌺", status: "Valor ecológico", habitat: "Zonas húmedas y riberas", desc: "Flor nacional de gran valor biológico." },
+        { name: "Timbó", region: "Chaco Húmedo", icon: "🌱", status: "Nativo", habitat: "Zonas húmedas", desc: "Frutos de gran nutrición para el monte." },
+        { name: "Gramíneas y pastizales", region: "Chaco Húmedo y Seco", icon: "🌾", status: "Protector del suelo", habitat: "Pastizales y llanuras", desc: "Protegen la tierra de la erosión." },
+        { name: "Camalote", region: "Chaco Húmedo", icon: "🪷", status: "Acuática", habitat: "Esteros y lagunas", desc: "Refugio flotante clave para ecosistemas acuáticos." },
+        { name: "Quebracho colorado", region: "Chaco Seco", icon: "🪵", status: "Emblemático / Valioso", habitat: "Monte seco", desc: "Madera valiosa y muy resistente a sequías." },
+        { name: "Palo santo", region: "Chaco Seco", icon: "🌿", status: "Aromático / Medicinal", habitat: "Bosque seco", desc: "Arbusto medicinal y aromático nativo." },
+        { name: "Cactáceas (tuna, cardón)", region: "Chaco Seco", icon: "🌵", status: "Reserva hídrica", habitat: "Zonas áridas", desc: "Almacenan agua durante la sequía." },
+        { name: "Tala", region: "Chaco Seco", icon: "🌳", status: "Resistente", habitat: "Monte árido", desc: "Resistente a la aridez extrema." }
+    ];
+
+    let player = { x: 2400, y: 2400, size: 14, speed: 4.5, binocularsActive: false, thermalActive: false, radarRange: 1200 };
+    let faunaRegisteredCount = 0;
+    let floraRegisteredCount = 0;
+    let migratedCount = 0;
+
+    // Inicializar Joystick Táctil
+    function initJoystick() {
+        const base = document.getElementById('joystick-base');
+        const thumb = document.getElementById('joystick-thumb');
+        let touchId = null;
+        let baseRect = {};
+
+        base.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (touchId === null) {
+                const touch = e.changedTouches[0];
+                touchId = touch.identifier;
+                baseRect = base.getBoundingClientRect();
+                updateJ(touch.clientX, touch.clientY);
+            }
+        });
+
+        window.addEventListener('touchmove', e => {
+            if (touchId === null) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === touchId) updateJ(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            }
+        });
+
+        const endJ = e => {
+            if (touchId === null) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === touchId) {
+                    touchId = null;
+                    joystickData = { active: false, x: 0, y: 0 };
+                    thumb.style.transform = `translate(0px, 0px)`;
+                }
+            }
+        };
+        window.addEventListener('touchend', endJ);
+        window.addEventListener('touchcancel', endJ);
+
+        function updateJ(cx, cy) {
+            const centerX = baseRect.left + baseRect.width / 2;
+            const centerY = baseRect.top + baseRect.height / 2;
+            let dx = cx - centerX, dy = cy - centerY;
+            const dist = Math.hypot(dx, dy);
+            const maxR = 35;
+            if (dist > maxR) { dx = (dx / dist) * maxR; dy = (dy / dist) * maxR; }
+            thumb.style.transform = `translate(${dx}px, ${dy}px)`;
+            joystickData = { active: true, x: dx / maxR, y: dy / maxR };
+        }
+
+        // Botones de acción táctil móvil
+        document.getElementById('btn-action-reg').onclick = () => triggerSpaceAction();
+        document.getElementById('btn-action-e').onclick = () => {
+            keys['KeyE'] = !keys['KeyE'];
+            document.getElementById('btn-action-e').classList.toggle('active', keys['KeyE']);
+        };
+        document.getElementById('btn-action-f').onclick = () => {
+            magnetActive = !magnetActive;
+            updatePlayerBuffs();
+            document.getElementById('btn-action-f').classList.toggle('active', magnetActive);
+            floatingTexts.push({ text: magnetActive ? `🧲 IMÁN ON` : `🧲 IMÁN OFF`, x: player.x, y: player.y - 30, life: 60, color: '#ffaa00' });
+        };
+        document.getElementById('btn-action-b').onclick = () => {
+            player.binocularsActive = !player.binocularsActive;
+            if (player.binocularsActive) player.thermalActive = false;
+            updateHudStatus();
+            document.getElementById('btn-action-b').classList.toggle('active', player.binocularsActive);
+            document.getElementById('btn-action-t').classList.remove('active');
+        };
+        document.getElementById('btn-action-t').onclick = () => {
+            player.thermalActive = !player.thermalActive;
+            if (player.thermalActive) player.binocularsActive = false;
+            updateHudStatus();
+            document.getElementById('btn-action-t').classList.toggle('active', player.thermalActive);
+            document.getElementById('btn-action-b').classList.remove('active');
+        };
+    }
+
+    function triggerSpaceAction() {
+        faunaList.forEach(s => {
+            if (!s.registered && !s.migrated && !s.poached) {
+                const dist = Math.hypot(player.x - s.x, player.y - s.y);
+                let baseDist = selectedAbility === 'aguila' ? (magnetActive ? 110 : 140) : 70;
+                let binoDist = selectedAbility === 'aguila' ? (magnetActive ? 280 : 350) : 220;
+                let canRegister = s.category === 'Ave' ? (player.binocularsActive ? dist < binoDist : dist < baseDist) : (player.binocularsActive ? dist < binoDist : dist < baseDist);
+                if (canRegister) {
+                    s.registered = true;
+                    faunaRegisteredCount++;
+                    document.getElementById('fauna-count').innerText = `${faunaRegisteredCount} / ${rawFauna.length}`;
+                    openSpeciesModal(s);
+                }
+            }
+        });
+
+        floraList.forEach(s => {
+            if (!s.registered && !s.burned) {
+                const dist = Math.hypot(player.x - s.x, player.y - s.y);
+                if (dist < (selectedAbility === 'aguila' ? (magnetActive ? 110 : 140) : 70)) {
+                    s.registered = true;
+                    floraRegisteredCount++;
+                    document.getElementById('flora-count').innerText = `${floraRegisteredCount} / ${rawFlora.length}`;
+                    openSpeciesModal(s);
+                }
+            }
+        });
+    }
+
+    function selectDifficulty(diff) {
+        currentDifficulty = diff;
+        document.getElementById('screen-main-menu').classList.add('hidden');
+        document.getElementById('screen-ability-select').classList.remove('hidden');
+        currentState = STATE.ABILITY_SELECT;
+    }
+
+    function confirmAbility(ability) {
+        selectedAbility = ability;
+        magnetActive = false;
+
+        let diffName = "Fácil";
+        let fireCount = 4;
+        let growthMultiplier = 0.02;
+
+        if (currentDifficulty === 1) {
+            diffName = "Fácil";
+            timeRemaining = 600;
+            fireCount = 4;
+            growthMultiplier = 0.02;
+            poacher.speed = 1.5;
+        } else if (currentDifficulty === 2) {
+            diffName = "Medio";
+            timeRemaining = 300;
+            fireCount = 7;
+            growthMultiplier = 0.04;
+            poacher.speed = 2.2;
+        } else if (currentDifficulty === 3) {
+            diffName = "Difícil";
+            timeRemaining = 180;
+            fireCount = 11;
+            growthMultiplier = 0.07;
+            poacher.speed = 2.9;
+        }
+
+        updatePlayerBuffs();
+        document.getElementById('hud-diff-name').innerText = diffName;
+        updateTimerDisplay();
+        poachedCount = 0;
+        document.getElementById('poached-count').innerText = poachedCount;
+
+        trees = [];
+        for(let i=0; i<500; i++) {
+            trees.push({ x: Math.random() * worldSize, y: Math.random() * worldSize, r: 16 + Math.random() * 22, burning: false, ash: false });
+        }
+
+        rivers = [
+            { x1: 0, y1: 1200, x2: 4800, y2: 2400, width: 70 },
+            { x1: 2400, y1: 0, x2: 2800, y2: 4800, width: 55 }
+        ];
+
+        fireFoci = [];
+        for(let i=0; i<fireCount; i++) {
+            fireFoci.push({
+                x: Math.random() * (worldSize - 800) + 400,
+                y: Math.random() * (worldSize - 800) + 400,
+                r: 35,
+                maxR: 140 + Math.random() * 100,
+                growthRate: growthMultiplier + Math.random() * 0.02
+            });
+        }
+
+        tallGrass = [];
+        for(let i=0; i<150; i++) {
+            tallGrass.push({ x: Math.random() * worldSize, y: Math.random() * worldSize, r: 40 + Math.random() * 50 });
+        }
+
+        faunaList = [];
+        rawFauna.forEach((item, index) => {
+            let xPos = Math.random() * (worldSize - 600) + 300;
+            let yPos = Math.random() * (worldSize - 600) + 300;
+            if (item.category === 'Ave') {
+                const rt = trees[Math.floor(Math.random() * trees.length)];
+                xPos = rt.x; yPos = rt.y;
+            }
+            faunaList.push({ id: index + 1, ...item, x: xPos, y: yPos, registered: false, migrated: false, poached: false, color: item.category === 'Ave' ? '#38b6ff' : '#e0a96d' });
+        });
+
+        floraList = [];
+        rawFlora.forEach((item, index) => {
+            floraList.push({ id: index + 1, ...item, x: Math.random() * (worldSize - 600) + 300, y: Math.random() * (worldSize - 600) + 300, registered: false, burned: false, color: '#5cdb6d' });
+        });
+
+        player.x = worldSize / 2;
+        player.y = worldSize / 2;
+
+        poacher.active = true;
+        poacher.x = player.x + 800;
+        poacher.y = player.y + 800;
+        poacher.respawnTimer = 0;
+
+        document.getElementById('screen-ability-select').classList.add('hidden');
+        document.getElementById('screen-story').classList.remove('hidden');
+        document.getElementById('story-content').innerText = `Expedición en Nivel ${diffName}. ¡La fauna huye y migra, mientras la flora resiste en su lugar! Usa [F] para activar el Imán de Fauna.`;
+    }
+
+    function updatePlayerBuffs() {
+        if (selectedAbility === 'yaguarete') {
+            player.speed = magnetActive ? 5.2 : 6.2;
+            document.getElementById('hud-ability-name').innerText = "🐆 Yaguareté";
+        } else if (selectedAbility === 'aguila') {
+            player.speed = 4.5;
+            player.radarRange = magnetActive ? 1600 : 2200;
+            document.getElementById('hud-ability-name').innerText = "🦅 Águila";
+        } else if (selectedAbility === 'carpincho') {
+            player.speed = 4.5;
+            document.getElementById('hud-ability-name').innerText = "🦫 Carpincho";
+        }
+        document.getElementById('hud-magnet-status').innerText = magnetActive ? 'ACTIVADO' : 'OFF';
+        document.getElementById('hud-magnet-status').style.color = magnetActive ? '#00ff66' : '#ffaa00';
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (currentState === STATE.EXPLORATION) {
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showGameOverScreen("¡Se ha agotado el tiempo de la expedición de rescate!");
+                }
+            }
+        }, 1000);
+    }
+
+    function addExtraTime(seconds, posX, posY, label) {
+        timeRemaining += seconds;
+        updateTimerDisplay();
+
+        const timerBox = document.getElementById('hud-timer-box');
+        timerBox.classList.add('bonus-active');
+        setTimeout(() => timerBox.classList.remove('bonus-active'), 800);
+
+        floatingTexts.push({
+            text: `+${seconds}s ${label}`,
+            x: posX,
+            y: posY - 20,
+            life: 60,
+            color: '#00ff66'
+        });
+    }
+
+    function updateTimerDisplay() {
+        const mins = Math.floor(timeRemaining / 60);
+        const secs = timeRemaining % 60;
+        document.getElementById('hud-timer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        document.getElementById('hud-timer').style.color = timeRemaining <= 60 ? '#ff3300' : '#ffffff';
+    }
+
+    document.getElementById('btn-next').onclick = () => {
+        document.getElementById('screen-story').classList.add('hidden');
+        document.getElementById('hud-sidebar').classList.remove('hidden');
+        if (isTouchDevice) {
+            document.getElementById('mobile-controls').style.display = 'block';
+        }
+        currentState = STATE.EXPLORATION;
+        startTimer();
+        gameContainer.focus();
+    };
+
+    document.getElementById('btn-close-modal').onclick = () => {
+        document.getElementById('species-modal').classList.add('hidden');
+        currentState = STATE.EXPLORATION;
+        checkVictoryCondition();
+        gameContainer.focus();
+    };
+
+    window.addEventListener('keydown', e => {
+        if (currentState !== STATE.EXPLORATION) return;
+
+        if (e.code === 'KeyB') {
+            player.binocularsActive = !player.binocularsActive;
+            if (player.binocularsActive) player.thermalActive = false;
+            updateHudStatus();
+        }
+        if (e.code === 'KeyT') {
+            player.thermalActive = !player.thermalActive;
+            if (player.thermalActive) player.binocularsActive = false;
+            updateHudStatus();
+        }
+        if (e.code === 'KeyF') {
+            magnetActive = !magnetActive;
+            updatePlayerBuffs();
+            floatingTexts.push({ 
+                text: magnetActive ? `🧲 IMÁN DE FAUNA ON` : `🧲 IMÁN DE FAUNA OFF`, 
+                x: player.x, 
+                y: player.y - 30, 
+                life: 60, 
+                color: '#ffaa00' 
+            });
+        }
+
+        if (e.code === 'Space') {
+            triggerSpaceAction();
+        }
+    });
+
+    function updateHudStatus() {
+        document.getElementById('bino-status').innerText = player.binocularsActive ? 'ON' : 'OFF';
+        document.getElementById('bino-status').style.color = player.binocularsActive ? '#38b6ff' : '#5cdb6d';
+
+        document.getElementById('thermal-status').innerText = player.thermalActive ? 'ON' : 'OFF';
+        document.getElementById('thermal-status').style.color = player.thermalActive ? '#ff6600' : '#5cdb6d';
+
+        document.getElementById('hose-status').innerText = keys['KeyE'] ? 'DISPARANDO' : 'OFF';
+
+        const alertBanner = document.getElementById('thermal-alert-banner');
+        if (player.thermalActive && poacher.active && Math.hypot(player.x - poacher.x, player.y - poacher.y) < 900) {
+            alertBanner.classList.remove('hidden');
+        } else {
+            alertBanner.classList.add('hidden');
+        }
+    }
+
+    function openSpeciesModal(species) {
+        currentState = STATE.MODAL;
+        document.getElementById('modal-type').innerText = species.category ? `FAUNA (${species.category.toUpperCase()})` : 'FLORA NATIVA';
+        document.getElementById('modal-name').innerText = species.name;
+        document.getElementById('modal-region').innerText = species.region;
+        document.getElementById('modal-icon').innerText = species.icon;
+        document.getElementById('modal-status').innerText = species.status;
+        document.getElementById('modal-habitat').innerText = species.habitat;
+        document.getElementById('modal-desc').innerText = species.desc;
+        document.getElementById('species-modal').classList.remove('hidden');
+    }
+
+    function checkVictoryCondition() {
+        if ((faunaRegisteredCount + floraRegisteredCount >= (rawFauna.length + rawFlora.length) - migratedCount - poachedCount) || fireFoci.length === 0) {
+            clearInterval(timerInterval);
+            showVictoryScreen();
+        }
+    }
+
+    function showVictoryScreen() {
+        currentState = STATE.VICTORY;
+        document.getElementById('hud-sidebar').classList.add('hidden');
+        document.getElementById('mobile-controls').style.display = 'none';
+        const gridContainer = document.getElementById('summary-grid-container');
+        gridContainer.innerHTML = '';
+        [...rawFauna, ...rawFlora].forEach(sp => {
+            const item = document.createElement('div');
+            item.className = 'summary-item';
+            item.innerHTML = `<strong>${sp.icon} ${sp.name}</strong> (${sp.region})<br><em>Hábitat:</em> ${sp.habitat}<br><span>${sp.desc}</span>`;
+            gridContainer.appendChild(item);
+        });
+        document.getElementById('victory-screen').classList.remove('hidden');
+    }
+
+    function showGameOverScreen(reason) {
+        currentState = STATE.GAMEOVER;
+        document.getElementById('hud-sidebar').classList.add('hidden');
+        document.getElementById('mobile-controls').style.display = 'none';
+        document.getElementById('gameover-reason').innerText = reason;
+        document.getElementById('gameover-screen').classList.remove('hidden');
+    }
+
+    function update() {
+        if (currentState !== STATE.EXPLORATION) return;
+
+        dashOffset -= 0.5;
+
+        let dx = 0, dy = 0;
+        if (joystickData.active) {
+            dx = joystickData.x;
+            dy = joystickData.y;
+        } else {
+            if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+            if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+        }
+
+        let currentSpeed = player.speed;
+        tallGrass.forEach(g => {
+            if (Math.hypot(player.x - g.x, player.y - g.y) < g.r) currentSpeed = player.speed * 0.6;
+        });
+
+        const nextX = player.x + dx * currentSpeed;
+        const nextY = player.y + dy * currentSpeed;
+
+        let canMove = true;
+        trees.forEach(t => {
+            if (!t.ash && Math.hypot(nextX - t.x, nextY - t.y) < t.r + player.size - 4) canMove = false;
+        });
+
+        if (canMove) { player.x = nextX; player.y = nextY; }
+        player.x = Math.max(30, Math.min(worldSize - 30, player.x));
+        player.y = Math.max(30, Math.min(worldSize - 30, player.y));
+
+        if (!poacher.active) {
+            poacher.respawnTimer -= 1/60;
+            if (poacher.respawnTimer <= 0) {
+                let angle = Math.random() * Math.PI * 2;
+                let dist = 1200 + Math.random() * 1000;
+                poacher.x = Math.max(100, Math.min(worldSize - 100, player.x + Math.cos(angle) * dist));
+                poacher.y = Math.max(100, Math.min(worldSize - 100, player.y + Math.sin(angle) * dist));
+                poacher.active = true;
+                floatingTexts.push({ text: `⚠️ ¡EL CAZADOR HA VUELTO!`, x: player.x, y: player.y - 40, life: 90, color: '#ff0055' });
+            }
+        } else {
+            let nearestAnimal = null;
+            let minDist = Infinity;
+            faunaList.forEach(fa => {
+                if (!fa.registered && !fa.migrated && !fa.poached) {
+                    let d = Math.hypot(poacher.x - fa.x, poacher.y - fa.y);
+                    if (d < minDist) { minDist = d; nearestAnimal = fa; }
+                }
+            });
+
+            if (nearestAnimal && minDist < 900) {
+                poacher.targetX = nearestAnimal.x;
+                poacher.targetY = nearestAnimal.y;
+            } else {
+                poacher.timer--;
+                if (poacher.timer <= 0) {
+                    poacher.targetX = Math.random() * (worldSize - 400) + 200;
+                    poacher.targetY = Math.random() * (worldSize - 400) + 200;
+                    poacher.timer = 300 + Math.random() * 300;
+                }
+            }
+
+            let pAngle = Math.atan2(poacher.targetY - poacher.y, poacher.targetX - poacher.x);
+            poacher.x += Math.cos(pAngle) * poacher.speed;
+            poacher.y += Math.sin(pAngle) * poacher.speed;
+            poacher.x = Math.max(30, Math.min(worldSize - 30, poacher.x));
+            poacher.y = Math.max(30, Math.min(worldSize - 30, poacher.y));
+
+            faunaList.forEach(fa => {
+                if (!fa.registered && !fa.migrated && !fa.poached) {
+                    if (Math.hypot(poacher.x - fa.x, poacher.y - fa.y) < 35) {
+                        let chance = Math.random();
+                        if (chance < 0.70) {
+                            fa.migrated = true;
+                            migratedCount++;
+                            document.getElementById('migrated-count').innerText = migratedCount;
+                            floatingTexts.push({ text: `💨 ¡${fa.name} ESCAPÓ!`, x: fa.x, y: fa.y, life: 70, color: '#00ff66' });
+                        } else {
+                            fa.poached = true;
+                            poachedCount++;
+                            document.getElementById('poached-count').innerText = poachedCount;
+                            floatingTexts.push({ text: `❌ ${fa.name} CAZADO`, x: fa.x, y: fa.y, life: 70, color: '#ff3300' });
+
+                            fireFoci.push({ x: fa.x, y: fa.y, r: 30, maxR: 130, growthRate: 0.04 });
+
+                            if (poachedCount >= 6) {
+                                clearInterval(timerInterval);
+                                showGameOverScreen("¡Demasiadas especies han sido cazadas por el furtivo!");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        faunaList.forEach(fa => {
+            if (fa.migrated && !fa.registered) {
+                if (Math.random() < 0.003) { 
+                    fa.migrated = false;
+                    migratedCount = Math.max(0, migratedCount - 1);
+                    document.getElementById('migrated-count').innerText = migratedCount;
+
+                    if (magnetActive) {
+                        let angle = Math.random() * Math.PI * 2;
+                        let dist = 100 + Math.random() * 150;
+                        fa.x = Math.max(50, Math.min(worldSize - 50, player.x + Math.cos(angle) * dist));
+                        fa.y = Math.max(50, Math.min(worldSize - 50, player.y + Math.sin(angle) * dist));
+                        floatingTexts.push({ text: `🧲 ${fa.name} Atraído`, x: fa.x, y: fa.y, life: 70, color: '#00ff66' });
+                    } else {
+                        fa.x = Math.random() * (worldSize - 400) + 200;
+                        fa.y = Math.random() * (worldSize - 400) + 200;
+                    }
+                }
+            }
+        });
+
+        if (keys['KeyE']) {
+            updateHudStatus();
+            let hosePower = selectedAbility === 'carpincho' ? (magnetActive ? 2.5 : 3.6) : (magnetActive ? 1.2 : 1.8);
+            let hoseReach = selectedAbility === 'carpincho' ? 160 : 90;
+
+            for(let i=0; i<3; i++) {
+                waterParticles.push({ x: player.x, y: player.y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: 25, r: 4 + Math.random() * 4 });
+            }
+
+            for (let i = fireFoci.length - 1; i >= 0; i--) {
+                let f = fireFoci[i];
+                if (Math.hypot(player.x - f.x, player.y - f.y) < f.r + hoseReach) {
+                    f.r -= hosePower;
+                    if (f.r <= 5) {
+                        let bonusSecs = selectedAbility === 'carpincho' ? 20 : 15;
+                        addExtraTime(bonusSecs, f.x, f.y, "EXTINGUIDO");
+                        fireFoci.splice(i, 1);
+                    }
+                }
+            }
+
+            if (poacher.active && Math.hypot(player.x - poacher.x, player.y - poacher.y) < hoseReach + 20) {
+                addExtraTime(30, poacher.x, poacher.y, "CAZADOR AHUYENTADO");
+                poacher.active = false;
+                poacher.respawnTimer = 30;
+            }
+        }
+
+        fireFoci.forEach(f => {
+            if (f.r < f.maxR) f.r += f.growthRate;
+
+            if (Math.random() < 0.4) {
+                particles.push({
+                    x: f.x + (Math.random() - 0.5) * f.r,
+                    y: f.y + (Math.random() - 0.5) * f.r,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: -Math.random() * 2 - 1,
+                    life: 40 + Math.random() * 30,
+                    size: 3 + Math.random() * 5,
+                    color: Math.random() > 0.5 ? '#ff4400' : '#ffcc00'
+                });
+            }
+
+            faunaList.forEach(fa => {
+                if (!fa.registered && !fa.migrated && !fa.poached) {
+                    if (Math.hypot(f.x - fa.x, f.y - fa.y) < f.r + 70) {
+                        fa.migrated = true;
+                        migratedCount++;
+                        document.getElementById('migrated-count').innerText = migratedCount;
+                    }
+                }
+            });
+        });
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.life--;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        for (let i = waterParticles.length - 1; i >= 0; i--) {
+            let wp = waterParticles[i];
+            wp.x += wp.vx; wp.y += wp.vy; wp.life--;
+            if (wp.life <= 0) waterParticles.splice(i, 1);
+        }
+
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            ft.y -= 0.8;
+            ft.life--;
+            if (ft.life <= 0) floatingTexts.splice(i, 1);
+        }
+    }
+
+    function render() {
+        if (player.thermalActive) ctx.fillStyle = '#0a0202';
+        else ctx.fillStyle = '#0f1c11';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (currentState !== STATE.EXPLORATION && currentState !== STATE.MODAL) return;
+
+        const camX = player.x - canvas.width / 2;
+        const camY = player.y - canvas.height / 2;
+
+        ctx.save();
+        ctx.translate(-camX, -camY);
+
+        rivers.forEach(r => {
+            ctx.beginPath(); ctx.moveTo(r.x1, r.y1); ctx.lineTo(r.x2, r.y2);
+            ctx.lineWidth = r.width; ctx.strokeStyle = '#1a4356';
+            ctx.lineCap = 'round'; ctx.stroke();
+        });
+
+        if (!player.thermalActive) {
+            ctx.fillStyle = '#162b1a';
+            tallGrass.forEach(g => { ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2); ctx.fill(); });
+        }
+
+        trees.forEach(t => {
+            if (!player.thermalActive) {
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+                ctx.fillStyle = t.burning ? '#ff3300' : '#1c3620';
+                ctx.fill();
+            }
+        });
+
+        fireFoci.forEach(f => {
+            ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+            ctx.fillStyle = player.thermalActive ? 'rgba(255, 68, 0, 0.85)' : 'rgba(255, 85, 0, 0.35)';
+            ctx.fill();
+        });
+
+        particles.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = player.thermalActive ? '#ffffff' : p.color; ctx.fill();
+        });
+
+        waterParticles.forEach(wp => {
+            ctx.beginPath(); ctx.arc(wp.x, wp.y, wp.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#00e5ff'; ctx.fill();
+        });
+
+        floraList.forEach(fl => {
+            ctx.beginPath(); ctx.arc(fl.x, fl.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = fl.burned ? '#222222' : (fl.registered ? '#3a4a5c' : fl.color);
+            ctx.fill();
+        });
+
+        faunaList.forEach(fa => {
+            if (fa.migrated || fa.poached) return;
+            ctx.beginPath(); ctx.arc(fa.x, fa.y, fa.category === 'Ave' ? 6 : 9, 0, Math.PI * 2);
+            ctx.fillStyle = fa.registered ? '#3a4a5c' : (player.thermalActive ? '#ff9900' : fa.color);
+            ctx.fill();
+        });
+
+        if (poacher.active) {
+            ctx.beginPath(); ctx.arc(poacher.x, poacher.y, 14, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff0055'; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+        }
+
+        ctx.beginPath(); ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+        ctx.fillStyle = magnetActive ? '#ffaa00' : (player.thermalActive ? '#ffffff' : '#5cdb6d');
+        ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+
+        ctx.beginPath();
+        let baseRadius = selectedAbility === 'aguila' ? (magnetActive ? 110 : 140) : 75;
+        let binoRadius = selectedAbility === 'aguila' ? (magnetActive ? 280 : 350) : 220;
+        const currentRadius = player.binocularsActive ? binoRadius : baseRadius;
+
+        ctx.arc(player.x, player.y, currentRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = magnetActive ? '#ffaa00' : (player.binocularsActive ? '#38b6ff' : (player.thermalActive ? '#ff6600' : '#5cdb6d'));
+        ctx.lineWidth = 2;
+        ctx.lineDashOffset = dashOffset;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        floatingTexts.forEach(ft => {
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = ft.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(ft.text, ft.x, ft.y);
+        });
+
+        ctx.restore();
+        renderRadar();
+    }
+
+    function renderRadar() {
+        const rWidth = radarCanvas.width;
+        const rHeight = radarCanvas.height;
+        const center = rWidth / 2;
+        const scale = center / player.radarRange;
+
+        radarCtx.fillStyle = '#050806';
+        radarCtx.fillRect(0, 0, rWidth, rHeight);
+
+        radarCtx.strokeStyle = '#1e3223';
+        radarCtx.lineWidth = 1;
+        radarCtx.beginPath();
+        radarCtx.arc(center, center, center * 0.33, 0, Math.PI * 2);
+        radarCtx.arc(center, center, center * 0.66, 0, Math.PI * 2);
+        radarCtx.arc(center, center, center * 0.95, 0, Math.PI * 2);
+        radarCtx.stroke();
+
+        radarCtx.fillStyle = '#ffffff';
+        radarCtx.beginPath(); radarCtx.arc(center, center, 3.5, 0, Math.PI * 2); radarCtx.fill();
+
+        if (poacher.active) {
+            const pdx = poacher.x - player.x, pdy = poacher.y - player.y;
+            if (Math.hypot(pdx, pdy) <= player.radarRange) {
+                radarCtx.fillStyle = Math.floor(Date.now() / 200) % 2 === 0 ? '#ff0000' : '#ff9900';
+                radarCtx.beginPath(); radarCtx.arc(center + pdx * scale, center + pdy * scale, 6, 0, Math.PI * 2); radarCtx.fill();
+            }
+        }
+
+        fireFoci.forEach(f => {
+            const dx = f.x - player.x, dy = f.y - player.y;
+            if (Math.hypot(dx, dy) <= player.radarRange) {
+                radarCtx.fillStyle = '#ff1100';
+                radarCtx.beginPath(); radarCtx.arc(center + dx * scale, center + dy * scale, 4, 0, Math.PI * 2); radarCtx.fill();
+            }
+        });
+
+        faunaList.forEach(fa => {
+            if (fa.registered || fa.migrated || fa.poached) return;
+            const dx = fa.x - player.x, dy = fa.y - player.y;
+            if (Math.hypot(dx, dy) <= player.radarRange) {
+                radarCtx.fillStyle = fa.category === 'Ave' ? '#38b6ff' : '#ff4d4d';
+                radarCtx.beginPath(); radarCtx.arc(center + dx * scale, center + dy * scale, 3, 0, Math.PI * 2); radarCtx.fill();
+            }
+        });
+
+        floraList.forEach(fl => {
+            if (fl.registered || fl.burned) return;
+            const dx = fl.x - player.x, dy = fl.y - player.y;
+            if (Math.hypot(dx, dy) <= player.radarRange) {
+                radarCtx.fillStyle = '#5cdb6d';
+                radarCtx.beginPath();
+                radarCtx.arc(center + dx * scale, center + dy * scale, 2, 0, Math.PI * 2);
+                radarCtx.fill();
+            }
+        });
+    }
+
+    initJoystick();
+
+    function gameLoop() {
+        update();
+        render();
+        requestAnimationFrame(gameLoop);
+    }
+    requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
